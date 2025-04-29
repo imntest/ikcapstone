@@ -1,0 +1,114 @@
+.review-page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 20px;
+  }
+  
+  .review-page h2 {
+    margin-bottom: 30px;
+    text-align: center;
+  }
+  
+  .review-form-container {
+    background-color: #f5f5f5;
+    padding: 30px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .review-form .form-group {
+    margin-bottom: 20px;
+  }
+  
+  .review-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  
+  .review-form input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+  }
+  
+  .submit-button {
+    background-color: #0066cc;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    font-size: 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    transition: background-color 0.3s;
+  }
+  
+  .submit-button:hover {
+    background-color: #0055aa;
+  }
+  
+  .submit-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+  }
+  
+  .error-message {
+    color: #d32f2f;
+    background-color: #ffebee;
+    padding: 10px;
+    border-radius: 4px;
+    margin-top: 20px;
+  }
+  
+  .review-info {
+    background-color: #e8f4fd;
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 4px solid #0066cc;
+  }
+  
+  .review-info h3 {
+    margin-top: 0;
+    color: #0066cc;
+  }
+  
+  .review-info ol {
+    padding-left: 20px;
+  }
+  
+  .review-info li {
+    margin-bottom: 8px;
+  }
+
+  .diff-container {
+    margin-top: 20px;
+    background-color: #f8f8f8;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 5px;
+  }
+  
+  .diff {
+    font-family: monospace;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  
+  .diff-line {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 5px;
+  }
+  
+  .inline-comment {
+    margin-left: 20px;
+    background-color: #f0f0f0;
+    border-left: 3px solid #007bff;
+    padding: 5px;
+    border-radius: 3px;
+    font-size: 0.9em;
+  }

@@ -1,0 +1,72 @@
+# Environment variables and secrets
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Node dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# React build output
+client/build/
+client/dist/
+
+# Server build output
+server/dist/
+server/build/
+
+# IDE and editor files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+*.swp
+*.swo
+.vim/
+
+# Testing
+coverage/
+.nyc_output/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Operating system files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# MongoDB
+data/db/
+*.mongodb
+
+# Debug files
+.debug/
+
+# Optional: package lock files (uncomment if you want to ignore them)
+# package-lock.json
+# yarn.lock
+
+# Optional: deployment files
+.vercel
+.netlify
+.firebase/
+.firebaserc
+firebase-debug.log*

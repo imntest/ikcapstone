@@ -59,6 +59,37 @@ const ReviewDetailPage = () => {
             </button>
           ))}
         </div>
+        
+        {/* Add the test button here */}
+        <div className="test-actions">
+          <button 
+            onClick={async () => {
+              try {
+                const response = await fetch('/api/test-review', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ 
+                    owner: review.repositoryOwner, 
+                    repo: review.repositoryName, 
+                    pullNumber: review.pullRequestNumber 
+                  })
+                });
+                const data = await response.json();
+                
+                // Update the review content with test data
+                setReview({
+                  ...review,
+                  reviewContent: data.content
+                });
+              } catch (err) {
+                setError("Test error: " + err.message);
+              }
+            }}
+            className="test-button"
+          >
+            Load Test Review
+          </button>
+        </div>
       </div>
     </div>
   );

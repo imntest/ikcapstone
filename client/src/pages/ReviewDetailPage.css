@@ -67,3 +67,31 @@
   .star-btn:hover {
     color: #f39c12;
   }
+  
+  /* Test button styling */
+  .test-button {
+    background-color: #6f42c1;
+    color: #fff;
+    border: 1px solid rgba(27, 31, 35, 0.15);
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: background-color 0.2s;
+  }
+  
+  .test-button:hover {
+    background-color: #5a32a3;
+  }
+  
+  .test-button:active {
+    background-color: #4c2888;
+  }
+  
+  /* Container for test actions */
+  .test-actions {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #e1e4e8;
+  }

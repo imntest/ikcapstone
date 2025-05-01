@@ -11,7 +11,7 @@ const PRReviewSchema = new mongoose.Schema({
     required: true
   },
   pullRequestNumber: {
-    type: Number,
+    type: String,
     required: true
   },
   pullRequestTitle: {
@@ -19,7 +19,7 @@ const PRReviewSchema = new mongoose.Schema({
     required: true
   },
   reviewContent: {
-    type: String,
+    type: mongoose.Schema.Types.Mixed, // Use Mixed instead of String
     required: true
   },
   reviewDate: {

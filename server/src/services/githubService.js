@@ -68,6 +68,59 @@ class GitHubService {
       throw error;
     }
   }
+
+  // Add this method to your GitHubService class
+  async createPRReview(owner, repo, pullNumber, reviewContent) {
+    try {
+      console.log(`Creating PR review for ${owner}/${repo}/${pullNumber}`);
+      
+      // Parse the review content to extract comments
+      // This assumes reviewContent is in Markdown format
+      let comments = [];
+      
+      if (typeof reviewContent === 'string') {
+        // If it's a markdown document, we need to extract comment locations
+        // For simplicity, we'll just post a single review comment
+        const review = await this.octokit.pulls.createReview({
+          owner,
+          repo,
+          pull_number: pullNumber,
+          body: reviewContent,
+          event: 'COMMENT' // Other options: APPROVE, REQUEST_CHANGES
+        });
+        console.log("Created PR review:", review.data.id);
+        return review.data;
+      } 
+      else if (Array.isArray(reviewContent)) {
+        // If it's already an array of structured comments
+        // Create individual comments for each item
+        const comments = [];
+        
+        for (const item of reviewContent) {
+          if (item.path && (item.line || item.position)) {
+            const comment = await this.octokit.pulls.createReviewComment({
+              owner,
+              repo,
+              pull_number: pullNumber,
+              body: item.comment || item.body,
+              path: item.path,
+              line: item.line,
+              side: item.side || 'RIGHT'
+            });
+            comments.push(comment.data);
+          }
+        }
+        
+        console.log(`Created ${comments.length} PR comments`);
+        return { comments };
+      }
+
+      return null;
+    } catch (error) {
+      console.error("Error creating PR review:", error);
+      throw error;
+    }
+  }
 }
 
 module.exports = GitHubService;

@@ -29,26 +29,37 @@ router.get('/pull-request', async (req, res) => {
 
 // Endpoint to fetch pull request diff and comments
 router.get('/pull-request/diff', async (req, res) => {
-  const { owner, repo, pullNumber } = req.query;
-
   try {
-    const diff = await githubService.getPRDiff(owner, repo, pullNumber);
-    console.log('Generated Diff:', diff); // Log the diff
-
-    const { data: comments } = await githubService.octokit.rest.pulls.listReviewComments({
-      owner,
-      repo,
-      pull_number: pullNumber,
+    const { owner, repo, pullNumber } = req.query;
+    console.log(`Server: Getting diff for ${owner}/${repo}/${pullNumber}`);
+    
+    // Get diff from GitHub
+    const diffFiles = await githubService.getPRDiff(owner, repo, pullNumber);
+    console.log("Generated Diff:", diffFiles);
+    
+    // Extract the diff as a string from the array of file objects
+    const diffString = diffFiles
+      .map(file => 
+        `File: ${file.filename} (${file.status})\n${file.patch || ''}`)
+      .join('\n\n');
+    
+    // Get comments from GitHub
+    const comments = await githubService.getPRComments(owner, repo, pullNumber);
+    console.log("Fetched Comments:", comments);
+    
+    // Get review feedback (if any)
+    let reviewFeedback = [];
+    // ... existing reviewFeedback logic ...
+    
+    // Send as string, array, and array respectively
+    res.json({
+      diff: diffString,  // Convert to string format
+      comments: comments || [],
+      reviewFeedback: reviewFeedback || []
     });
-    console.log('Fetched Comments:', comments); // Log the comments
-
-    res.json({ diff, comments });
   } catch (error) {
-    console.error('Error fetching pull request diff and comments:', error.message);
-    res.status(500).json({
-      error: 'Failed to fetch pull request diff and comments',
-      details: error.message,
-    });
+    console.error("Server error getting PR diff:", error);
+    res.status(500).json({ error: error.message });
   }
 });
 

@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { fetchPullRequest, triggerPRReview, fetchPRDiffAndComments } from '../utils/githubApi';
-import { useNavigate } from 'react-router-dom';
+import { 
+  fetchPullRequest, 
+  triggerPRReview, 
+  fetchPRDiffAndComments, 
+  postReviewToGitHub   // Add this import
+} from '../utils/githubApi';
 import './PRReviewPage.css';
 
 const PRReviewPage = () => {
-  const navigate = useNavigate();
   const [owner, setOwner] = useState('');
   const [repo, setRepo] = useState('');
   const [pullNumber, setPullNumber] = useState('');
@@ -12,10 +15,9 @@ const PRReviewPage = () => {
   const [reviewResult, setReviewResult] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [diff, setDiff] = useState('');
-  const [comments, setComments] = useState([]);
-  const [reviewFeedback, setReviewFeedback] = useState([]); // Array of feedback objects
-
+  const [diffText, setDiffText] = useState('');
+  
+  // Simpler handler for fetching PR details
   const handleFetchPR = async () => {
     setLoading(true);
     setError(null);
@@ -23,37 +25,94 @@ const PRReviewPage = () => {
     try {
       const pr = await fetchPullRequest(owner, repo, pullNumber);
       setPullRequest(pr);
-      setError(null);
     } catch (err) {
+      console.error("Error fetching PR:", err);
       setError('Failed to fetch pull request details');
     } finally {
       setLoading(false);
     }
   };
 
+  // Add these detailed logs to the handleTriggerReview function
   const handleTriggerReview = async () => {
     setLoading(true);
     setError(null);
+    setReviewResult('');
+    
     try {
-      const reviewResponse = await triggerPRReview(owner, repo, pullNumber);
-      setReviewResult(reviewResponse.content); // Display the review content
+      console.log("Triggering review for:", owner, repo, pullNumber);
+      const response = await triggerPRReview(owner, repo, pullNumber);
+      console.log("Review API response:", response);
+      
+      if (response.content) {
+        if (Array.isArray(response.content) && response.content.length === 0) {
+          // Handle empty array case
+          setReviewResult("The review analysis returned no feedback. This may happen when:\n\n" +
+            "1. The PR is very simple with no issues to report\n" +
+            "2. The AI couldn't find anything to comment on\n" +
+            "3. There was an issue analyzing the code\n\n" +
+            "Try a different PR with more complex changes to get meaningful feedback.");
+        } else if (typeof response.content === 'object') {
+          setReviewResult(JSON.stringify(response.content, null, 2));
+        } else {
+          setReviewResult(response.content);
+        }
+      } else if (response.reviewContent) {
+        if (Array.isArray(response.reviewContent) && response.reviewContent.length === 0) {
+          // Handle empty array case for reviewContent
+          setReviewResult("No issues were found in this pull request.");
+        } else if (typeof response.reviewContent === 'object') {
+          setReviewResult(JSON.stringify(response.reviewContent, null, 2));
+        } else {
+          setReviewResult(response.reviewContent);
+        }
+      } else {
+        // Try to extract any useful information from the response
+        if (Array.isArray(response) && response.length === 0) {
+          setReviewResult("No issues were found in this pull request.");
+        } else if (Object.keys(response).length === 0) {
+          setReviewResult("The review returned an empty response.");
+        } else {
+          // Look for any string properties that might have content
+          const stringProps = Object.entries(response)
+            .filter(([_, value]) => typeof value === 'string' && value.length > 20);
+          
+          if (stringProps.length > 0) {
+            setReviewResult(stringProps[0][1]);
+          } else {
+            setReviewResult("No review content found in API response");
+          }
+        }
+      }
     } catch (err) {
-      setError('Failed to generate PR review');
+      console.error("Error generating review:", err);
+      setError(`Failed to generate PR review: ${err.message}`);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleFetchDiffAndComments = async () => {
+  // Simpler handler for showing diff
+  const handleShowDiff = async () => {
     setLoading(true);
     setError(null);
+    setDiffText('');
+    
     try {
-      const { diff, comments, reviewFeedback } = await fetchPRDiffAndComments(owner, repo, pullNumber);
-      setDiff(diff);
-      setComments(comments);
-      setReviewFeedback(reviewFeedback); // Set the line-level feedback
+      const response = await fetchPRDiffAndComments(owner, repo, pullNumber);
+      console.log("Diff response:", response);
+      
+      if (response.diff) {
+        // Just display the diff as text
+        setDiffText(typeof response.diff === 'string' 
+          ? response.diff 
+          : JSON.stringify(response.diff, null, 2));
+      } else {
+        setError("No diff returned from API");
+      }
     } catch (err) {
-      setError('Failed to fetch PR diff and comments');
+      console.error("Error fetching diff:", err);
+      setError(`Failed to fetch PR diff: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -63,13 +122,13 @@ const PRReviewPage = () => {
     <div className="review-page">
       <h2>Pull Request Review</h2>
       
+      {/* Input form */}
       <div className="review-form-container">
         <div className="form-group">
           <label htmlFor="owner">Repository Owner</label>
           <input 
             type="text" 
             id="owner"
-            name="owner" 
             value={owner} 
             onChange={(e) => setOwner(e.target.value)}
             placeholder="e.g., facebook"
@@ -82,7 +141,6 @@ const PRReviewPage = () => {
           <input 
             type="text" 
             id="repo"
-            name="repo" 
             value={repo} 
             onChange={(e) => setRepo(e.target.value)}
             placeholder="e.g., react"
@@ -95,7 +153,6 @@ const PRReviewPage = () => {
           <input 
             type="number" 
             id="pullNumber"
-            name="pullNumber" 
             value={pullNumber} 
             onChange={(e) => setPullNumber(e.target.value)}
             placeholder="e.g., 123"
@@ -108,6 +165,7 @@ const PRReviewPage = () => {
         </button>
       </div>
       
+      {/* PR details */}
       {pullRequest && (
         <div className="pull-request-details">
           <h3>Pull Request Details</h3>
@@ -115,56 +173,76 @@ const PRReviewPage = () => {
           <p><strong>Author:</strong> {pullRequest.user.login}</p>
           <p><strong>Status:</strong> {pullRequest.state}</p>
 
-          {/* Button to trigger the diff and comments fetch */}
-          <button onClick={handleFetchDiffAndComments} className="diff-button" disabled={loading}>
-            {loading ? 'Loading Diff...' : 'Show Diff and Comments'}
-          </button>
+          {/* Action buttons */}
+          <div className="button-group">
+            <button onClick={handleTriggerReview} className="review-button" disabled={loading}>
+              {loading ? 'Generating Review...' : 'Generate Review'}
+            </button>
+            <button onClick={handleShowDiff} className="diff-button" disabled={loading}>
+              {loading ? 'Loading Diff...' : 'Show Diff'}
+            </button>
+            {/* Add this new test button */}
+            <button 
+              onClick={async () => {
+                setLoading(true);
+                try {
+                  const response = await fetch('/api/test-review', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ owner, repo, pullNumber })
+                  });
+                  const data = await response.json();
+                  setReviewResult(data.content);
+                } catch (err) {
+                  setError("Test error: " + err.message);
+                } finally {
+                  setLoading(false);
+                }
+              }} 
+              className="test-button"
+              disabled={loading}
+            >
+              Test Review
+            </button>
+            {/* Add this button to your UI */}
+            <button 
+              onClick={async () => {
+                setLoading(true);
+                try {
+                  const result = await postReviewToGitHub(owner, repo, pullNumber);
+                  alert("Review posted to GitHub successfully!");
+                } catch (err) {
+                  setError(`Failed to post review to GitHub: ${err.message}`);
+                } finally {
+                  setLoading(false);
+                }
+              }} 
+              className="github-button"
+              disabled={loading || !reviewResult}
+            >
+              Post to GitHub
+            </button>
+          </div>
         </div>
       )}
-
+      
+      {/* Review result (simplified) */}
       {reviewResult && (
         <div className="review-result">
           <h3>Review Feedback</h3>
-          <pre>{reviewResult}</pre>
+          <pre className="feedback-text">{reviewResult}</pre>
         </div>
       )}
-
-      {diff && (
+      
+      {/* Diff display (simplified) */}
+      {diffText && (
         <div className="diff-container">
           <h3>Pull Request Diff</h3>
-          <pre className="diff">
-            {diff.split('\n').map((line, index) => (
-              <div key={index} className="diff-line">
-                <span>{line}</span>
-                {reviewFeedback
-                  .filter((feedback) => feedback.line === index + 1) // Match feedback to the line
-                  .map((feedback, idx) => (
-                    <div key={idx} className="inline-comment">
-                      <strong>Bot:</strong> {feedback.comment}
-                    </div>
-                  ))}
-                {comments
-                  .filter((comment) => comment.position === index + 1) // Match GitHub comments to the line
-                  .map((comment, idx) => (
-                    <div key={idx} className="inline-comment">
-                      <strong>{comment.user.login}:</strong> {comment.body}
-                    </div>
-                  ))}
-              </div>
-            ))}
-          </pre>
+          <pre className="diff-text">{diffText}</pre>
         </div>
       )}
-
-      {reviewFeedback && (
-        <div className="review-feedback">
-          <h3>Bot Review Feedback</h3>
-          <pre>{reviewFeedback}</pre>
-        </div>
-      )}
-
-      {!diff && <p>No diff available for this pull request.</p>}
-
+      
+      {/* Error message */}
       {error && (
         <div className="error-message">
           {error}

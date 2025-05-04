@@ -131,3 +131,35 @@ export const postReviewToGitHub = async (owner, repo, pullNumber, reviewId) => {
     throw error;
   }
 };
+
+// Add this function to your API module
+export const triggerFeedbackReview = async (owner, repo, pullNumber, userFeedback) => {
+  try {
+    // Use an absolute URL to ensure it goes to port 5001
+    const url = 'http://localhost:5001/api/feedback-review';
+    console.log(`Making request to: ${url}`);
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        owner,
+        repo,
+        pullNumber,
+        userFeedback
+      }),
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Error ${response.status}: ${errorText}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error generating feedback-guided review:', error);
+    throw error;
+  }
+};

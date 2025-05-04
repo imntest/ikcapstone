@@ -31,6 +31,13 @@ app.use('/api', prReviewRoutes);
 // Register the GitHub routes
 app.use('/api/github', githubRoutes);
 
+
+// Add a basic test route directly in app.js
+app.get('/test', (req, res) => {
+  res.json({ message: 'Server is running!' });
+});
+
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
@@ -50,7 +57,7 @@ mongoose.connect(process.env.MONGODB_URI, {
 .catch(err => console.error('MongoDB connection error:', err));
 
 // Start server
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

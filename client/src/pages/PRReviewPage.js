@@ -3,7 +3,8 @@ import {
   fetchPullRequest, 
   triggerPRReview, 
   fetchPRDiffAndComments, 
-  postReviewToGitHub   // Add this import
+  postReviewToGitHub,
+  triggerFeedbackReview // Add this new import
 } from '../utils/githubApi';
 import './PRReviewPage.css';
 
@@ -16,6 +17,8 @@ const PRReviewPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [diffText, setDiffText] = useState('');
+  const [userFeedback, setUserFeedback] = useState('');
+  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   
   // Simpler handler for fetching PR details
   const handleFetchPR = async () => {
@@ -113,6 +116,55 @@ const PRReviewPage = () => {
     } catch (err) {
       console.error("Error fetching diff:", err);
       setError(`Failed to fetch PR diff: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Add this handler for feedback-guided review
+  const handleFeedbackReview = async (e) => {
+    if (e) {
+      e.preventDefault();
+    }
+    
+    if (!userFeedback.trim()) {
+      setError("Please provide feedback or specific areas to focus on.");
+      return;
+    }
+    
+    setLoading(true);
+    setError(null);
+    setReviewResult('');
+    
+    try {
+      console.log("Triggering feedback-guided review for:", owner, repo, pullNumber);
+      console.log("User feedback:", userFeedback);
+      
+      const response = await triggerFeedbackReview(owner, repo, pullNumber, userFeedback);
+      console.log("Feedback-guided review response:", response);
+      
+      // Add proper error handling and null checking
+      if (!response) {
+        throw new Error("No response received from server");
+      }
+      
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      
+      // Check for content in different possible properties
+      const reviewContent = response.content || response.reviewContent || response.result || response.text || "";
+      
+      if (reviewContent) {
+        setReviewResult(reviewContent);
+        // Hide the feedback form after successful review
+        setShowFeedbackForm(false);
+      } else {
+        setReviewResult("Review generated but no content was returned. Check server logs.");
+      }
+    } catch (err) {
+      console.error("Error generating feedback-guided review:", err);
+      setError(`Failed to generate feedback-guided review: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -223,6 +275,45 @@ const PRReviewPage = () => {
               Post to GitHub
             </button>
           </div>
+        </div>
+      )}
+      
+      {/* Add this button to show/hide the feedback form */}
+      {pullRequest && (
+        <div className="feedback-review-section">
+          <button 
+            className="feedback-toggle-button"
+            onClick={() => setShowFeedbackForm(!showFeedbackForm)}
+          >
+            {showFeedbackForm ? 'Hide Feedback Form' : 'Guided Review with Feedback'}
+          </button>
+          
+          {showFeedbackForm && (
+            <div className="feedback-form">
+              <form onSubmit={handleFeedbackReview}>
+                <div className="form-group">
+                  <label htmlFor="userFeedback">
+                    What should the review focus on? (e.g., "Check for security vulnerabilities" or "Ensure proper error handling")
+                  </label>
+                  <textarea
+                    id="userFeedback"
+                    className="feedback-input"
+                    value={userFeedback}
+                    onChange={(e) => setUserFeedback(e.target.value)}
+                    placeholder="Enter specific areas to focus on or questions you have about the code..."
+                    rows={4}
+                  />
+                </div>
+                <button 
+                  type="submit" 
+                  className="feedback-review-button"
+                  disabled={loading}
+                >
+                  {loading ? 'Generating...' : 'Generate Guided Review'}
+                </button>
+              </form>
+            </div>
+          )}
         </div>
       )}
       

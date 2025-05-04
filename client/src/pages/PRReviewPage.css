@@ -238,3 +238,70 @@
   background-color: #94d3a2;
   cursor: not-allowed;
 }
+
+/* Add these styles for the feedback form */
+.feedback-review-section {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.feedback-toggle-button {
+  background-color: #6f42c1;
+  color: #fff;
+  border: 1px solid rgba(27, 31, 35, 0.15);
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.feedback-toggle-button:hover {
+  background-color: #5a32a3;
+}
+
+.feedback-form {
+  background-color: #f6f8fa;
+  border: 1px solid #e1e4e8;
+  border-radius: 6px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.feedback-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #d1d5da;
+  border-radius: 6px;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.feedback-review-button {
+  background-color: #6f42c1;
+  color: #fff;
+  border: 1px solid rgba(27, 31, 35, 0.15);
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 15px;
+  transition: background-color 0.2s;
+}
+
+.feedback-review-button:hover {
+  background-color: #5a32a3;
+}
+
+.feedback-review-button:disabled {
+  background-color: #d5c8e5;
+  cursor: not-allowed;
+}
+
+label {
+  font-weight: 500;
+  display: block;
+  margin-bottom: 5px;
+}

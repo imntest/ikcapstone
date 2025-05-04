@@ -121,6 +121,23 @@ class GitHubService {
       throw error;
     }
   }
+
+  // Add this method to get repository information
+  async getRepositoryInfo(owner, repo) {
+    try {
+      console.log(`Fetching repository info for ${owner}/${repo}`);
+      
+      const response = await this.octokit.repos.get({
+        owner,
+        repo
+      });
+      
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching repository info:", error);
+      throw error;
+    }
+  }
 }
 
 module.exports = GitHubService;
